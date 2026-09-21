@@ -1,0 +1,24 @@
+name: Uppdatera fantasydata
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/fetch-startlists.mjs
+      - run: node scripts/enrich-startlists.mjs
+      - run: |
+          git config user.name "Lidingöloppet Fantasy bot"
+          git config user.email "actions@github.com"
+          git add startlists.json startlists.js
+          git diff --cached --quiet || git commit -m "Uppdatera LL-historik och stjärnpriser"
+          git push

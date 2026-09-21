@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lidingöloppet Fantasy</title>
+<style>
+:root{--green:#07583d;--green2:#0b6949;--mint:#4bb99b;--ink:#101513;--muted:#68736e;--line:#dfe6e2;--bg:#f3f5f3;--white:#fff;--red:#a52828;--font:'Sofia Pro','Sofia Pro Regular',Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font)}button,input{font:inherit}button{cursor:pointer}
+.brand-font,h1,h2,h3,.nav,.class-name,.big-number,.btn,.logo-word{font-family:var(--font);letter-spacing:.01em}
+.topbar{height:72px;background:var(--green);color:#fff;display:flex;align-items:center;padding:0 28px;gap:28px;position:sticky;top:0;z-index:20}
+.top-logo{height:48px;width:auto;object-fit:contain;background:#fff;padding:4px 8px}
+.nav{display:flex;gap:4px;align-self:stretch;align-items:center;font-size:20px;font-weight:600}
+.nav button{border:0;background:transparent;color:#dcebe5;padding:0 15px;height:100%;position:relative}.nav button.active,.nav button:hover{color:#fff}.nav button.active:after{content:"";position:absolute;left:15px;right:15px;bottom:0;height:4px;background:var(--mint)}
+.user-area{margin-left:auto;display:flex;align-items:center;gap:12px}.avatar{width:38px;height:38px;background:#fff;color:var(--green);display:grid;place-items:center;border-radius:50%;font-weight:700}.user-name{font-size:14px}.logout{border:1px solid #80a99b;background:transparent;color:#fff;padding:8px 12px}
+.page{max-width:1180px;margin:0 auto;padding:36px 22px 70px}.page-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:25px}.eyebrow{color:var(--green2);font-family:var(--font);font-size:17px;text-transform:uppercase;font-weight:700;letter-spacing:.08em}.page h1{font-size:46px;line-height:1;margin:4px 0 0;font-weight:700}.page-intro{color:var(--muted);margin:8px 0 0;max-width:650px}.selection-rules{margin:14px 0 0;padding:13px 16px;border-left:5px solid var(--green);background:#e7eeea;color:var(--ink);font-size:16px;font-weight:600;line-height:1.4}
+.btn{border:0;padding:11px 17px;font-size:18px;font-weight:600}.btn.primary{background:var(--green);color:#fff}.btn.primary:hover{background:var(--green2)}.btn.secondary{background:#e7eeea;color:var(--green)}.btn.white{background:#fff;color:var(--green)}
+.card{background:#fff;border:1px solid var(--line);padding:22px}.grid{display:grid;gap:14px}.grid.classes{grid-template-columns:repeat(2,minmax(0,1fr))}.class-card{display:flex;justify-content:space-between;align-items:center;text-align:left;padding:20px 24px;background:#fff;border:1px solid var(--line);border-left:5px solid var(--green)}.class-card>div{display:flex;flex-direction:column;align-items:flex-start}.class-card:hover{border-color:#aebdb6}.class-name{font-size:27px;font-weight:700;line-height:1.1}.class-distance{color:var(--muted);font-size:15px;line-height:1.25;margin-top:5px}.arrow{font-size:25px;color:var(--green)}
+.login-wrap{min-height:100vh;background:linear-gradient(#f4f6f4,#eaf0ed);display:grid;place-items:center;padding:25px}.login-box{width:min(460px,100%);background:#fff;border:1px solid var(--line);padding:36px 36px 30px;box-shadow:0 14px 45px rgba(16,35,28,.09)}.login-logo{display:block;width:300px;max-width:90%;height:auto;margin:0 auto 28px}.login-title{font-family:var(--font);font-size:36px;text-align:center;margin:0 0 4px}.login-sub{text-align:center;color:var(--muted);margin:0 0 25px}.field{margin:0 0 14px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input{width:100%;border:1px solid #cfd8d3;padding:12px 13px;background:#fbfcfb;outline:none}.field input:focus{border-color:var(--green)}.login-actions{display:flex;gap:10px;margin-top:18px}.login-actions>*{flex:1}.login-note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}.error{color:var(--red);font-size:13px;margin:8px 0}
+.profile-strip{background:var(--green);color:#fff;padding:25px 27px;display:flex;align-items:center;gap:18px;margin-bottom:18px}.profile-avatar{width:65px;height:65px;background:#fff;color:var(--green);display:grid;place-items:center;font-size:25px;font-weight:700;border-radius:50%}.profile-strip h2{font-size:32px;margin:0}.profile-strip p{margin:2px 0 0;color:#d5e7df}.stat{margin-left:auto;text-align:right}.big-number{font-size:36px;font-weight:700}.stat small{color:#d5e7df}
+.section-title{font-family:var(--font);font-size:30px;margin:28px 0 12px}.overview-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.overview-card{background:#fff;border:1px solid var(--line);padding:17px}.overview-head{display:flex;justify-content:space-between;border-bottom:1px solid #edf1ef;padding-bottom:9px;margin-bottom:5px}.overview-head strong{font-family:var(--font);font-size:21px;color:var(--green)}.runner-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f2f1}.runner-row:last-child{border:0}.runner-name{font-weight:600}.runner-club{font-size:12px;color:var(--muted);margin-top:2px}.stars{color:var(--green);font-weight:700}
+.friend-layout,.league-layout{display:grid;grid-template-columns:1.25fr .75fr;gap:15px}.list{background:#fff;border:1px solid var(--line)}.list-item{display:flex;align-items:center;gap:13px;padding:15px 17px;border-bottom:1px solid #edf0ee}.list-item:last-child{border:0}.mini-avatar{width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:#dfeae5;color:var(--green);font-weight:700}.list-main{flex:1}.list-name{font-weight:700}.list-meta{font-size:12px;color:var(--muted);margin-top:2px}.right-actions{margin-left:auto}.empty{padding:28px;color:var(--muted);text-align:center}
+.league-card{background:#fff;border:1px solid var(--line);padding:20px}.league-card + .league-card{margin-top:12px}.league-card-head{display:flex;justify-content:space-between;align-items:start}.league-card h3{font-size:28px;margin:0}.league-code{font-family:monospace;background:#edf3f0;color:var(--green);padding:5px 8px;font-size:12px}.league-members{color:var(--muted);font-size:13px;margin:7px 0 14px}.member-stack{display:flex;align-items:center}.member-stack .mini-avatar{margin-right:-8px;border:2px solid #fff;width:34px;height:34px;font-size:11px}.modal-backdrop{position:fixed;inset:0;background:rgba(7,24,17,.58);z-index:50;display:grid;place-items:center;padding:20px}.modal{width:min(520px,100%);background:#fff;padding:27px}.modal h2{font-size:34px;margin:0 0 17px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.toast{position:fixed;right:18px;bottom:18px;background:var(--green);color:#fff;padding:13px 17px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+@media(max-width:800px){.topbar{padding:0 14px;height:auto;min-height:64px;flex-wrap:wrap;gap:5px}.top-logo{height:40px}.nav{order:3;width:100%;height:45px;overflow:auto}.nav button{font-size:17px;padding:0 10px}.nav button.active:after{left:10px;right:10px}.user-name,.logout{display:none}.page{padding:25px 14px 50px}.page h1{font-size:39px}.page-head{align-items:start}.grid.classes,.overview-grid,.friend-layout,.league-layout{grid-template-columns:1fr}.profile-strip{align-items:flex-start}.stat{margin-left:auto}.big-number{font-size:30px}}
+</style>
+
+<style id="ll-branding">
+:root { --ll-green:#17613f; --ll-green-dark:#10472e; }
+a, a:visited { color:var(--ll-green) !important; }
+button, .btn, .tab, .nav-item { accent-color:var(--ll-green); }
+.active, .selected, .btn-primary, button.primary {
+  background:var(--ll-green) !important;
+  border-color:var(--ll-green) !important;
+  color:#fff !important;
+}
+.ll-logo {
+  display:block;
+  width:min(430px,82vw);
+  height:auto;
+  margin:0 auto 22px;
+}
+.login-logo-wrap { text-align:center; }
+</style>
+
+
+<style id="runner-controls">
+.runner-toolbar{
+  background:#fff;
+  border:1px solid var(--line);
+  padding:14px 16px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.runner-budget{
+  margin-right:auto;
+  font-size:18px;
+  font-weight:700;
+  color:var(--green);
+  white-space:nowrap;
+}
+.runner-search{
+  min-width:260px;
+  flex:1;
+  border:1px solid #cfd8d3;
+  padding:11px 13px;
+  background:#fbfcfb;
+  outline:none;
+}
+.runner-search:focus{border-color:var(--green)}
+.runner-sort{
+  border:1px solid #cfd8d3;
+  padding:11px 13px;
+  background:#fff;
+  color:var(--ink);
+  min-width:190px;
+}
+.runner-count{
+  width:100%;
+  color:var(--muted);
+  font-size:13px;
+  margin-top:-2px;
+}
+.runner-result.is-hidden{display:none}
+@media(max-width:800px){
+  .runner-search,.runner-sort{width:100%;min-width:0}
+  .runner-budget{width:100%;margin-right:0}
+}
+</style>
+
+<style id="budget-fixed-home">
+.selection-rules{
+  text-align:left;
+  width:fit-content;
+  min-width:390px;
+  max-width:100%;
+}
+.budget-line{
+  font-size:18px;
+  font-weight:700;
+  line-height:1.35;
+}
+.rules-line{
+  margin-top:3px;
+  font-size:15px;
+  font-weight:500;
+}
+@media(max-width:800px){
+  .selection-rules{
+    min-width:0;
+    width:100%;
+  }
+}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<script src="./startlists.js"></script>
+<script>
+const CLASSES=[
+ ['P15','6 km · Lilla LL'],['F15','6 km · Lilla LL'],['P17','10 km'],['F17','10 km'],['P19','10 km'],['F19','10 km'],['M 15 km','15 km · 1A'],['K 15 km','15 km · 1A'],['M 30 km','30 km · 1A'],['K 30 km','30 km · 1A']
+];
+const BUDGET=80;
+let STARTLISTS=window.LL_STARTLISTS||{updatedAt:null,classes:{}};
+let selectedRunners=JSON.parse(localStorage.getItem('llFantasySelected')||'[]');
+let activeClass=null;
+let runnerSearch='';
+let runnerSort='nameAsc';
+async function loadStartlists(){
+  if(window.LL_STARTLISTS){STARTLISTS=window.LL_STARTLISTS;if(current && view==='pick')render();return;}
+  try{const r=await fetch('./startlists.json',{cache:'no-store'});if(!r.ok)throw new Error();STARTLISTS=await r.json();}
+  catch(e){STARTLISTS={updatedAt:null,classes:{}};}
+  if(current && view==='pick') render();
+}
+function saveSelected(){localStorage.setItem('llFantasySelected',JSON.stringify(selectedRunners));}
+function teamCost(){return selectedRunners.reduce((sum,r)=>sum+Number(r.stars||1),0);}
+function classPage(id){activeClass=id;render();}
+function toggleRunner(id,runner){
+  const idx=selectedRunners.findIndex(x=>x.classId===id&&x.bib===runner.bib);
+  if(idx>=0) selectedRunners.splice(idx,1);
+  else {
+    if(selectedRunners.filter(x=>x.classId===id).length>=3){toast('Du kan bara välja 3 löpare i den här klassen');return;}
+    const cost=Number(runner.stars||1);
+    if(teamCost()+cost>BUDGET){toast(`Budgeten räcker inte — du har ${BUDGET-teamCost()} stjärnor kvar`);return;}
+    selectedRunners.push({classId:id,...runner});
+  }
+  saveSelected();render();
+}
+function selected(id,bib){return selectedRunners.some(x=>x.classId===id&&x.bib===bib)}
+const DEMO_RUNNERS={
+ 'P15':[], 'F15':[], 'P17':[], 'F17':[], 'P19':[], 'F19':[], 'M 15 km':[], 'K 15 km':[], 'M 30 km':[], 'K 30 km':[]
+};
+const seed={email:'demo@fantasy.se',name:'Max',password:'demo'};
+let db=JSON.parse(localStorage.getItem('llFantasyDB')||'null')||{users:[seed],friends:[],leagues:[{name:'Lidingö Fantasy 2026',code:'LL26',members:['Max'],owner:'Max'}]};
+let current=localStorage.getItem('llFantasyUser')||'';
+let view='pick';
+function save(){localStorage.setItem('llFantasyDB',JSON.stringify(db));localStorage.setItem('llFantasyUser',current)}
+function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
+function render(){document.getElementById('app').innerHTML=current?appShell():loginPage()}
+function loginPage(){return `<div class="login-wrap"><div class="login-box"><img class="login-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><h1 class="login-title">Lidingöloppet Fantasy</h1><p class="login-sub">Bygg ditt lag. Tävla mot kompisarna.</p><div id="loginError"></div><div class="field"><label>E-post</label><input id="email" type="email" value="demo@fantasy.se" placeholder="du@exempel.se"></div><div class="field"><label>Lösenord</label><input id="password" type="password" value="demo" placeholder="••••••••"></div><div class="login-actions"><button class="btn primary" onclick="login()">Logga in</button><button class="btn secondary" onclick="register()">Skapa konto</button></div><div class="login-note">Demo: demo@fantasy.se / demo</div></div></div>`}
+function login(){let e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;let u=db.users.find(x=>x.email===e&&x.password===p);if(!u){document.getElementById('loginError').innerHTML='<div class="error">Fel e-post eller lösenord.</div>';return}current=u.name;save();render()}
+function register(){let e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}if(db.users.some(x=>x.email===e)){document.getElementById('loginError').innerHTML='<div class="error">Kontot finns redan.</div>';return}let n=e.split('@')[0];db.users.push({email:e,password:p,name:n});current=n;save();render();toast('Kontot skapades')}
+function logout(){current='';save();render()}
+function appShell(){let u=db.users.find(x=>x.name===current)||{name:current};return `<header class="topbar"><img class="top-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><nav class="nav"><button class="${view==='pick'?'active':''}" onclick="go('pick')">Välj löpare</button><button class="${view==='my'?'active':''}" onclick="go('my')">Mina löpare</button><button class="${view==='friends'?'active':''}" onclick="go('friends')">Kompisar</button><button class="${view==='leagues'?'active':''}" onclick="go('leagues')">Ligor</button></nav><div class="user-area"><div class="avatar">${initials(u.name)}</div><span class="user-name">${u.name}</span><button class="logout" onclick="logout()">Logga ut</button></div></header><main class="page">${view==='pick'?pickPage():view==='my'?myPage():view==='friends'?friendsPage():leaguesPage()}</main>`}
+function go(v){view=v;render()}
+
+function filteredRunners(rows){
+  const q=runnerSearch.trim().toLowerCase();
+  let list=rows.filter(r=>{
+    if(!q)return true;
+    return `${r.name||''} ${r.club||''} ${r.bib||''}`.toLowerCase().includes(q);
+  });
+  list=[...list];
+  list.sort((a,b)=>{
+    const an=(a.name||'').toLowerCase(), bn=(b.name||'').toLowerCase();
+    const ac=(a.club||'').toLowerCase(), bc=(b.club||'').toLowerCase();
+    const ab=Number(a.bib)||0, bb=Number(b.bib)||0;
+    const as=Number(a.stars||1), bs=Number(b.stars||1);
+    if(runnerSort==='nameDesc') return bn.localeCompare(an,'sv');
+    if(runnerSort==='clubAsc') return ac.localeCompare(bc,'sv') || an.localeCompare(bn,'sv');
+    if(runnerSort==='starsAsc') return as-bs || an.localeCompare(bn,'sv');
+    if(runnerSort==='starsDesc') return bs-as || an.localeCompare(bn,'sv');
+    if(runnerSort==='bibAsc') return ab-bb;
+    return an.localeCompare(bn,'sv');
+  });
+  return list;
+}
+function filterRunnerRows(value){
+  runnerSearch=value;
+  const q=value.trim().toLowerCase();
+  document.querySelectorAll('.runner-result').forEach(row=>{
+    const hay=row.dataset.search||'';
+    row.classList.toggle('is-hidden', !!q && !hay.includes(q));
+  });
+  const visible=document.querySelectorAll('.runner-result:not(.is-hidden)').length;
+  const count=document.getElementById('runnerVisibleCount');
+  if(count)count.textContent=`Visar ${visible} av ${document.querySelectorAll('.runner-result').length} löpare`;
+}
+
+function pickPage(){
+  if(activeClass){
+    const allRows = STARTLISTS.classes[activeClass] || [];
+    const rows = filteredRunners(allRows);
+    const picked = selectedRunners.filter(x=>x.classId===activeClass).length;
+    const remaining = BUDGET-teamCost();
+
+    return `<div class="page-head">
+      <div>
+        <div class="eyebrow">Startlista · ${activeClass}</div>
+        <h1>${activeClass}</h1>
+        <p class="page-intro">${allRows.length ? `${allRows.length} löpare i startlistan. Välj 3.` : 'Startlistan är inte inläst ännu.'}</p>
+      </div>
+      <button class="btn secondary" onclick="activeClass=null;runnerSearch='';render()">← Alla klasser</button>
+    </div>
+
+    <div class="runner-toolbar">
+      <div class="runner-budget">⭐ ${teamCost()} / ${BUDGET} stjärnor · ${remaining} kvar</div>
+      <input
+        class="runner-search"
+        type="search"
+        placeholder="Sök namn, klubb eller startnummer…"
+        value="${runnerSearch.replace(/"/g,'&quot;')}"
+        oninput="filterRunnerRows(this.value)"
+      >
+      <select class="runner-sort" onchange="runnerSort=this.value;render()">
+        <option value="nameAsc" ${runnerSort==='nameAsc'?'selected':''}>Namn A–Ö</option>
+        <option value="nameDesc" ${runnerSort==='nameDesc'?'selected':''}>Namn Ö–A</option>
+        <option value="clubAsc" ${runnerSort==='clubAsc'?'selected':''}>Klubb A–Ö</option>
+        <option value="starsAsc" ${runnerSort==='starsAsc'?'selected':''}>Stjärnor – lägst först</option>
+        <option value="starsDesc" ${runnerSort==='starsDesc'?'selected':''}>Stjärnor – högst först</option>
+        <option value="bibAsc" ${runnerSort==='bibAsc'?'selected':''}>Startnummer</option>
+      </select>
+      <div class="runner-count" id="runnerVisibleCount">Visar ${rows.length} av ${allRows.length} löpare</div>
+    </div>
+
+    <div class="card" style="padding:0">
+      ${allRows.length ? (rows.length ? rows.map(r=>{
+        const searchData=`${r.name||''} ${r.club||''} ${r.bib||''}`.toLowerCase().replace(/"/g,'&quot;');
+        return `
+        <div class="list-item runner-result" data-search="${searchData}">
+          <div class="mini-avatar">${initials(r.name)}</div>
+          <div class="list-main">
+            <div class="list-name">${r.name}</div>
+            <div class="list-meta">${r.club || ''} · Startnr ${r.bib} · <strong>⭐ ${Number(r.stars||1)}</strong></div>
+          </div>
+          <button class="btn ${selected(activeClass,r.bib)?'primary':'secondary'}"
+                  onclick='toggleRunner(${JSON.stringify(activeClass)},${JSON.stringify(r)})'>
+            ${selected(activeClass,r.bib)?'Vald':'Välj'}
+          </button>
+        </div>`;
+      }).join('') : `<div class="empty">Ingen löpare matchar din sökning.</div>`) :
+      `<div class="empty">
+        Startlistan finns inte i <code>startlists.json</code> ännu.
+        <br><br>
+        När <code>startlists.js</code> eller <code>startlists.json</code> finns i samma projektmapp visas löparna här.
+      </div>`}
+    </div>`;
+  }
+
+  return `<div class="page-head">
+    <div>
+      <div class="eyebrow">Lidingöloppet Fantasy 2026</div>
+      <h1>Välj löpare</h1>
+      <p class="page-intro">Välj tre löpare i varje klass och bygg din fantasytrupp.</p><div class="selection-rules">
+  <div class="budget-line">⭐ ${teamCost()} / ${BUDGET} stjärnor</div>
+  <div class="rules-line">Endast startgrupp 1A räknas i 15 km och 30 km.</div>
+</div>
+    </div>
+  </div>
+  <div class="grid classes">
+    ${CLASSES.map(c=>`
+      <button class="class-card" onclick='classPage(${JSON.stringify(c[0])})'>
+        <div>
+          <div class="class-name">${c[0]}</div>
+          <div class="class-distance">${c[1]}</div>
+        </div>
+        <span class="arrow">›</span>
+      </button>`).join('')}
+  </div>`;
+}
+function myPage(){let total=selectedRunners.length;return `<div class="page-head"><div><div class="eyebrow">Din fantasytrupp</div><h1>Mina löpare</h1><p class="page-intro">Här får du en samlad överblick över dina val.</p></div></div><div class="profile-strip"><div class="profile-avatar">${initials(current)}</div><div><h2>${current}</h2><p>Fantasytrupp 2026</p></div><div class="stat"><div class="big-number">${total} / 30</div><small>löpare valda · ${teamCost()} / ${BUDGET} ★</small></div></div><div class="overview-grid">${CLASSES.map(c=>{const picks=selectedRunners.filter(r=>r.classId===c[0]);return `<section class="overview-card"><div class="overview-head"><strong>${c[0]}</strong><span>${picks.length} / 3</span></div>${picks.length ? picks.map(r=>`<div class="runner-row"><div><div class="runner-name">${r.name}</div><div class="runner-club">${r.club||''}</div></div><div class="stars">${'★'.repeat(Number(r.stars||1))}</div></div>`).join('') : `<div class="empty" style="padding:15px 0">Inga löpare valda ännu</div>`}</section>`}).join('')}</div>`}
+function friendsPage(){let friends=db.friends.filter(x=>x!==current);return `<div class="page-head"><div><div class="eyebrow">Socialt</div><h1>Kompisar</h1><p class="page-intro">Lägg till kompisar och jämför era fantasytrupper.</p></div><button class="btn primary" onclick="friendModal()">+ Lägg till kompis</button></div><div class="friend-layout"><div class="list">${friends.length?friends.map(f=>`<div class="list-item"><div class="mini-avatar">${initials(f)}</div><div class="list-main"><div class="list-name">${f}</div><div class="list-meta">Kompis</div></div><button class="btn secondary" onclick="toast('Profil öppnad')">Visa</button></div>`).join(''):`<div class="empty">Du har inga kompisar ännu.<br>Skicka en inbjudan för att komma igång.</div>`}</div><div class="card"><h2 class="section-title" style="margin-top:0">Bjud in</h2><p class="page-intro">Skicka din inbjudningskod till en kompis.</p><div style="font-family:monospace;font-size:26px;color:var(--green);padding:16px 0">LL-${initials(current)}26</div><button class="btn primary" onclick="copyInvite()">Kopiera kod</button></div></div>`}
+function leaguesPage(){let ls=db.leagues.filter(l=>l.members.includes(current)||l.owner===current);return `<div class="page-head"><div><div class="eyebrow">Tävla tillsammans</div><h1>Ligor</h1><p class="page-intro">Skapa privata ligor, bjud in kompisar och följ tabellen tillsammans.</p></div><button class="btn primary" onclick="leagueModal()">+ Skapa liga</button></div><div class="league-layout"><div>${ls.length?ls.map(l=>`<div class="league-card"><div class="league-card-head"><div><h3>${l.name}</h3><div class="league-members">${l.members.length} medlem${l.members.length===1?'':'mar'} · Kod ${l.code}</div></div><span class="league-code">${l.owner===current?'ADMIN':'MEDLEM'}</span></div><div class="member-stack">${l.members.slice(0,6).map(m=>`<div class="mini-avatar" title="${m}">${initials(m)}</div>`).join('')}</div><div style="margin-top:16px"><button class="btn secondary" onclick="toast('Ligavyn kommer här')">Öppna liga</button></div></div>`).join(''):`<div class="card empty">Du är inte med i någon liga ännu.</div>`}</div><div class="card"><h2 class="section-title" style="margin-top:0">Gå med i liga</h2><p class="page-intro">Har en kompis skickat en ligakod?</p><div class="field" style="margin-top:18px"><label>Ligakod</label><input id="joinCode" placeholder="t.ex. LL26"></div><button class="btn primary" onclick="joinLeague()">Gå med</button></div></div>`}
+function modal(inner){document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop" id="modal"><div class="modal">${inner}</div></div>`)}
+function closeModal(){document.getElementById('modal')?.remove()}
+function friendModal(){modal(`<h2>Lägg till kompis</h2><div class="field"><label>Kompisens användarnamn</label><input id="friendName" placeholder="t.ex. Erik"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="addFriend()">Lägg till</button></div>`)}
+function addFriend(){let n=document.getElementById('friendName').value.trim();if(!n)return;if(!db.users.some(u=>u.name.toLowerCase()===n.toLowerCase())){toast('Ingen användare hittades');return}if(n===current||db.friends.includes(n)){toast('Redan tillagd');return}db.friends.push(n);save();closeModal();render();toast('Kompis tillagd')}
+function leagueModal(){modal(`<h2>Skapa liga</h2><div class="field"><label>Ligans namn</label><input id="leagueName" placeholder="t.ex. Klassen 9B"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="createLeague()">Skapa liga</button></div>`)}
+function createLeague(){let n=document.getElementById('leagueName').value.trim();if(!n)return;let code='LL'+Math.random().toString(36).slice(2,6).toUpperCase();db.leagues.push({name:n,code,members:[current],owner:current});save();closeModal();render();toast('Liga skapad')}
+function joinLeague(){let code=document.getElementById('joinCode').value.trim().toUpperCase();let l=db.leagues.find(x=>x.code===code);if(!l){toast('Ligakoden hittades inte');return}if(!l.members.includes(current))l.members.push(current);save();render();toast('Du gick med i ligan')}
+function copyInvite(){navigator.clipboard?.writeText('LL-'+initials(current)+'26');toast('Inbjudningskod kopierad')}
+function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+render();
+loadStartlists();
+</script>
+</body>
+</html>
