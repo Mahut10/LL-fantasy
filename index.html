@@ -121,13 +121,17 @@ button, .btn, .tab, .nav-item { accent-color:var(--ll-green); }
 <body>
 <div id="app"></div>
 <script src="./startlists.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const CLASSES=[
  ['P15','6 km · Lilla LL'],['F15','6 km · Lilla LL'],['P17','10 km'],['F17','10 km'],['P19','10 km'],['F19','10 km'],['M 15 km','15 km · 1A'],['K 15 km','15 km · 1A'],['M 30 km','30 km · 1A'],['K 30 km','30 km · 1A']
 ];
 const BUDGET=80;
 let STARTLISTS=window.LL_STARTLISTS||{updatedAt:null,classes:{}};
-let selectedRunners=JSON.parse(localStorage.getItem('llFantasySelected')||'[]');
+const SUPABASE_URL='https://ysrtvadqkvptzsvbpumt.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_c458t1EQbKEcB18zeWj19Q_EHMfP0NZ';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let selectedRunners=[];
 let activeClass=null;
 let runnerSearch='';
 let runnerSort='nameAsc';
@@ -137,7 +141,7 @@ async function loadStartlists(){
   catch(e){STARTLISTS={updatedAt:null,classes:{}};}
   if(current && view==='pick') render();
 }
-function saveSelected(){localStorage.setItem('llFantasySelected',JSON.stringify(selectedRunners));}
+async function saveSelected(){if(!currentUser)return;const {error}=await supabaseClient.from('fantasy_teams').upsert({user_id:currentUser.id,selected_runners:selectedRunners,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)toast('Kunde inte spara laget');}
 function teamCost(){return selectedRunners.reduce((sum,r)=>sum+Number(r.stars||1),0);}
 function classPage(id){activeClass=id;render();}
 function toggleRunner(id,runner){
@@ -155,20 +159,44 @@ function selected(id,bib){return selectedRunners.some(x=>x.classId===id&&x.bib==
 const DEMO_RUNNERS={
  'P15':[], 'F15':[], 'P17':[], 'F17':[], 'P19':[], 'F19':[], 'M 15 km':[], 'K 15 km':[], 'M 30 km':[], 'K 30 km':[]
 };
-const seed={email:'demo@fantasy.se',name:'Max',password:'demo'};
-let db=JSON.parse(localStorage.getItem('llFantasyDB')||'null')||{users:[seed],friends:[],leagues:[{name:'Lidingö Fantasy 2026',code:'LL26',members:['Max'],owner:'Max'}]};
-let current=localStorage.getItem('llFantasyUser')||'';
+let currentUser=null;
+let current='';
 let view='pick';
-function save(){localStorage.setItem('llFantasyDB',JSON.stringify(db));localStorage.setItem('llFantasyUser',current)}
-function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
-function render(){document.getElementById('app').innerHTML=current?appShell():loginPage()}
-function loginPage(){return `<div class="login-wrap"><div class="login-box"><img class="login-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><h1 class="login-title">Lidingöloppet Fantasy</h1><p class="login-sub">Bygg ditt lag. Tävla mot kompisarna.</p><div id="loginError"></div><div class="field"><label>E-post</label><input id="email" type="email" value="demo@fantasy.se" placeholder="du@exempel.se"></div><div class="field"><label>Lösenord</label><input id="password" type="password" value="demo" placeholder="••••••••"></div><div class="login-actions"><button class="btn primary" onclick="login()">Logga in</button><button class="btn secondary" onclick="register()">Skapa konto</button></div><div class="login-note">Demo: demo@fantasy.se / demo</div></div></div>`}
-function login(){let e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;let u=db.users.find(x=>x.email===e&&x.password===p);if(!u){document.getElementById('loginError').innerHTML='<div class="error">Fel e-post eller lösenord.</div>';return}current=u.name;save();render()}
-function register(){let e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}if(db.users.some(x=>x.email===e)){document.getElementById('loginError').innerHTML='<div class="error">Kontot finns redan.</div>';return}let n=e.split('@')[0];db.users.push({email:e,password:p,name:n});current=n;save();render();toast('Kontot skapades')}
-function logout(){current='';save();render()}
-function appShell(){let u=db.users.find(x=>x.name===current)||{name:current};return `<header class="topbar"><img class="top-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><nav class="nav"><button class="${view==='pick'?'active':''}" onclick="go('pick')">Välj löpare</button><button class="${view==='my'?'active':''}" onclick="go('my')">Mina löpare</button><button class="${view==='friends'?'active':''}" onclick="go('friends')">Kompisar</button><button class="${view==='leagues'?'active':''}" onclick="go('leagues')">Ligor</button></nav><div class="user-area"><div class="avatar">${initials(u.name)}</div><span class="user-name">${u.name}</span><button class="logout" onclick="logout()">Logga ut</button></div></header><main class="page">${view==='pick'?pickPage():view==='my'?myPage():view==='friends'?friendsPage():leaguesPage()}</main>`}
-function go(v){view=v;render()}
-
+let db={friends:[],leagues:[{name:'Lidingö Fantasy 2026',code:'LL26',members:[],owner:''}]};
+function initials(n){return (n||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'?'}
+function render(){document.getElementById('app').innerHTML=currentUser?appShell():loginPage()}
+async function loadUserData(){
+ if(!currentUser)return;
+ const [{data:profile},{data:team}]=await Promise.all([
+  supabaseClient.from('profiles').select('display_name').eq('id',currentUser.id).maybeSingle(),
+  supabaseClient.from('fantasy_teams').select('selected_runners').eq('user_id',currentUser.id).maybeSingle()
+ ]);
+ current=profile?.display_name||currentUser.email.split('@')[0];
+ selectedRunners=Array.isArray(team?.selected_runners)?team.selected_runners:[];
+}
+function loginPage(){return '<div class="login-wrap"><div class="login-box"><img class="login-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><h1 class="login-title">Lidingöloppet Fantasy</h1><p class="login-sub">Bygg ditt lag. Tävla mot kompisarna.</p><div id="loginError"></div><div class="field"><label>E-post</label><input id="email" type="email" placeholder="du@exempel.se"></div><div class="field"><label>Lösenord</label><input id="password" type="password" placeholder="••••••••"></div><div class="login-actions"><button class="btn primary" onclick="login()">Logga in</button><button class="btn secondary" onclick="register()">Skapa konto</button></div><div class="login-note">Ditt konto sparas säkert och fungerar på alla dina enheter.</div></div></div>'}
+async function login(){
+ const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
+ if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email:e,password:p});
+ if(error){document.getElementById('loginError').innerHTML='<div class="error">Fel e-post eller lösenord.</div>';return}
+ currentUser=data.user;await loadUserData();render();
+}
+async function register(){
+ const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
+ if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}
+ if(p.length<6){document.getElementById('loginError').innerHTML='<div class="error">Lösenordet måste vara minst 6 tecken.</div>';return}
+ const n=e.split('@')[0];
+ const {data,error}=await supabaseClient.auth.signUp({email:e,password:p});
+ if(error){document.getElementById('loginError').innerHTML='<div class="error">Kunde inte skapa kontot.</div>';return}
+ if(data.user){
+  await supabaseClient.from('profiles').upsert({id:data.user.id,display_name:n,updated_at:new Date().toISOString()},{onConflict:'id'});
+  if(data.session){currentUser=data.user;current=n;selectedRunners=[];render();toast('Kontot skapades')}
+  else document.getElementById('loginError').innerHTML='<div class="success">Kontot skapades. Kontrollera din e-post för att bekräfta kontot.</div>';
+ }
+}
+async function logout(){await supabaseClient.auth.signOut();currentUser=null;current='';selectedRunners=[];render()}
+function appShell(){let u={name:current};return
 function filteredRunners(rows){
   const q=runnerSearch.trim().toLowerCase();
   let list=rows.filter(r=>{
@@ -295,8 +323,7 @@ function createLeague(){let n=document.getElementById('leagueName').value.trim()
 function joinLeague(){let code=document.getElementById('joinCode').value.trim().toUpperCase();let l=db.leagues.find(x=>x.code===code);if(!l){toast('Ligakoden hittades inte');return}if(!l.members.includes(current))l.members.push(current);save();render();toast('Du gick med i ligan')}
 function copyInvite(){navigator.clipboard?.writeText('LL-'+initials(current)+'26');toast('Inbjudningskod kopierad')}
 function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
-render();
-loadStartlists();
+supabaseClient.auth.getSession().then(async ({data})=>{currentUser=data.session?.user||null;if(currentUser){await loadUserData()}render();loadStartlists();});supabaseClient.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;});
 </script>
 </body>
 </html>
