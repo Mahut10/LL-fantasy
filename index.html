@@ -156,9 +156,7 @@ function toggleRunner(id,runner){
   saveSelected();render();
 }
 function selected(id,bib){return selectedRunners.some(x=>x.classId===id&&x.bib===bib)}
-const DEMO_RUNNERS={
- 'P15':[], 'F15':[], 'P17':[], 'F17':[], 'P19':[], 'F19':[], 'M 15 km':[], 'K 15 km':[], 'M 30 km':[], 'K 30 km':[]
-};
+
 let currentUser=null;
 let current='';
 let view='pick';
