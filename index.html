@@ -146,6 +146,21 @@ button, .btn, .tab, .nav-item { accent-color:var(--ll-green); }
 </style>
 
 <style id="profile-stats-fix">.star-stat{margin-top:4px;font-size:13px;font-weight:700;color:#fff}.star-stat .star-mark{font-size:15px}.star-stat span:last-child{font-size:11px;font-weight:400;color:#d5e7df;margin-left:3px}@media(max-width:800px){.profile-strip .stat small{white-space:nowrap}.star-stat{font-size:12px}.star-stat span:last-child{font-size:10px}}</style>
+<style id="league-ui-fix">
+.deadline-line{margin-top:7px!important;font-weight:700!important;color:var(--green)}
+.deadline-note{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.league-detail-title{font-size:38px;margin:4px 0 0}
+.league-code-box{background:var(--green);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.league-code-box span{font-size:13px;color:#d5e7df;text-transform:uppercase;letter-spacing:.06em}
+.league-code-box strong{font-family:monospace;font-size:28px;letter-spacing:.12em;margin-right:auto}
+.league-table-head,.league-member-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center}
+.league-table-head{padding:0 0 10px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.league-member-row{padding:14px 0;border-bottom:1px solid #edf0ee}
+.league-member-row:last-child{border-bottom:0}
+.league-points{color:var(--green);font-size:18px}
+button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:800px){.league-code-box{flex-wrap:wrap}.league-code-box strong{width:100%;margin-right:0}.league-code-box .btn{width:100%}.league-detail-title{font-size:32px}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -164,16 +179,23 @@ let selectedRunners=[];
 let activeClass=null;
 let runnerSearch='';
 let runnerSort='nameAsc';
+const FANTASY_DEADLINE=new Date('2026-09-25T15:00:00+02:00');
+let leaguesData=[];
+let activeLeagueId=null;
+let activeLeagueMembers=[];
+function deadlinePassed(){return Date.now()>=FANTASY_DEADLINE.getTime()}
+function deadlineText(){return 'fredag 25 september kl. 15:00'}
 async function loadStartlists(){
   if(window.LL_STARTLISTS){STARTLISTS=window.LL_STARTLISTS;if(current && view==='pick')render();return;}
   try{const r=await fetch('./startlists.json',{cache:'no-store'});if(!r.ok)throw new Error();STARTLISTS=await r.json();}
   catch(e){STARTLISTS={updatedAt:null,classes:{}};}
   if(current && view==='pick') render();
 }
-async function saveSelected(){if(!currentUser)return;const {error}=await supabaseClient.from('fantasy_teams').upsert({user_id:currentUser.id,selected_runners:selectedRunners,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)toast('Kunde inte spara laget');}
+async function saveSelected(){if(!currentUser||deadlinePassed())return;const {error}=await supabaseClient.from('fantasy_teams').upsert({user_id:currentUser.id,selected_runners:selectedRunners,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error){toast('Kunde inte spara laget');await loadUserData();render();}}
 function teamCost(){return selectedRunners.reduce((sum,r)=>sum+Number(r.stars||1),0);}
 function classPage(id){activeClass=id;render();}
 function toggleRunner(id,runner){
+  if(deadlinePassed()){toast('Deadline har passerat. Laget är låst.');return}
   const idx=selectedRunners.findIndex(x=>x.classId===id&&x.bib===runner.bib);
   if(idx>=0) selectedRunners.splice(idx,1);
   else {
@@ -190,7 +212,7 @@ let currentUser=null;
 let current='';
 let profileData={display_name:'',username:'',avatar_url:''};
 let view='pick';
-let db={friends:[],leagues:[{name:'Lidingö Fantasy 2026',code:'LL26',members:[],owner:''}]};
+let db={friends:[]};
 function initials(n){return (n||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'?'}
 function profilePage(){return `<div class="page-head"><div><div class="eyebrow">Ditt konto</div><h1>Profil</h1><p class="page-intro">Redigera dina uppgifter och din profilbild.</p></div><button class="btn secondary" onclick="view='pick';render()">← Tillbaka</button></div><div class="card" style="max-width:720px"><div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-bottom:26px"><div class="profile-avatar">${profileData.avatar_url?`<img src="${profileData.avatar_url}" alt="">`:initials(current)}</div><div><h2 style="margin:0 0 5px;font-size:30px">${current}</h2><div class="page-intro">${currentUser.email}</div></div><div style="margin-left:auto"><label class="btn secondary" style="display:inline-block">Byt profilbild<input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this.files[0])"></label></div></div><div class="field"><label>Namn</label><input id="profileDisplayName" value="${(profileData.display_name||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></div><div class="field"><label>Användarnamn</label><input id="profileUsername" value="${(profileData.username||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="t.ex. max123"></div><div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn primary" onclick="saveProfile()">Spara ändringar</button></div></div>`}
 async function saveProfile(){if(!currentUser)return;const displayName=document.getElementById('profileDisplayName').value.trim();const username=document.getElementById('profileUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');if(!displayName){toast('Fyll i ett namn');return}if(!username){toast('Fyll i ett användarnamn');return}const {data,error}=await supabaseClient.from('profiles').upsert({id:currentUser.id,display_name:displayName,username,avatar_url:profileData.avatar_url||null,updated_at:new Date().toISOString()},{onConflict:'id'}).select('display_name,username,avatar_url').single();if(error){toast('Kunde inte spara uppgifterna');return}profileData.display_name=data.display_name||displayName;profileData.username=data.username||username;profileData.avatar_url=data.avatar_url||profileData.avatar_url||'';current=profileData.display_name;render();toast('Profilen sparades')}
@@ -240,7 +262,7 @@ function resultsInfoPage(){return `<div class="page info-page"><div class="page-
 
 function siteFooter(){return `<footer class="site-footer"><span>Inofficiellt hobbyprojekt · Ej anslutet till Lidingöloppet</span><span>·</span><button onclick="view='terms';render()">Villkor & information</button></footer>`}
 
-function appShell(){let u={name:current};return `<header class="topbar"><img class="top-logo" src="./assets/ll-logo.png" alt="Lidingöloppet"><nav class="nav"><button class="${view==='pick'?'active':''}" onclick="view='pick';render()">Välj löpare</button><button class="${view==='mine'?'active':''}" onclick="view='mine';render()">Mina löpare</button><button class="${view==='friends'?'active':''}" onclick="view='friends';render()">Kompisar</button><button class="${view==='leagues'?'active':''}" onclick="view='leagues';render()">Ligor</button></nav><div class="user-area"><button style="border:0;background:transparent;padding:0" onclick="view='profile';render()" title="Profil"><div class="avatar">${profileData.avatar_url?`<img src="${profileData.avatar_url}" alt="">`:initials(current)}</div></button><div class="user-name">${current}</div><button class="logout" onclick="logout()">Logga ut</button></div></header><main class="page">${view==='pick'?pickPage():view==='mine'?myPage():view==='friends'?friendsPage():view==='leagues'?leaguesPage():view==='terms'?termsPage():view==='stars'?starsInfoPage():view==='results'?resultsInfoPage():profilePage()}</main>${siteFooter()}`;}function filteredRunners(rows){
+function appShell(){return `<header class="topbar"><img class="top-logo" src="./assets/ll-logo.png" alt="Lidingöloppet"><nav class="nav"><button class="${view==='pick'?'active':''}" onclick="view='pick';render()">Välj löpare</button><button class="${view==='mine'?'active':''}" onclick="view='mine';render()">Mina löpare</button><button class="${view==='leagues'?'active':''}" onclick="view='leagues';render()">Ligor</button></nav><div class="user-area"><button style="border:0;background:transparent;padding:0" onclick="view='profile';render()" title="Profil"><div class="avatar">${profileData.avatar_url?`<img src="${profileData.avatar_url}" alt="">`:initials(current)}</div></button><div class="user-name">${current}</div><button class="logout" onclick="logout()">Logga ut</button></div></header><main class="page">${view==='pick'?pickPage():view==='mine'?myPage():view==='leagues'?leaguesPage():view==='terms'?termsPage():view==='stars'?starsInfoPage():view==='results'?resultsInfoPage():profilePage()}</main>${siteFooter()}`;}function filteredRunners(rows){
   const q=runnerSearch.trim().toLowerCase();
   let list=rows.filter(r=>{
     if(!q)return true;
@@ -317,11 +339,11 @@ function pickPage(){
           <div class="mini-avatar">${initials(r.name)}</div>
           <div class="list-main">
             <div class="list-name">${r.name}</div>
-            <div class="list-meta">${r.club || ''} · Startnr ${r.bib} · <strong>⭐ ${Number(r.stars||1)}</strong></div>
+            <div class="list-meta">${r.club || ''} · Startnr ${r.bib} · <strong><span class="star-mark">★</span> ${Number(r.stars||1)}</strong></div>
           </div>
-          <button class="btn ${selected(activeClass,r.bib)?'primary':'secondary'}"
+          <button class="btn ${deadlinePassed()?'secondary':selected(activeClass,r.bib)?'primary':'secondary'}" ${deadlinePassed()?'disabled':''}
                   onclick='toggleRunner(${JSON.stringify(activeClass)},${JSON.stringify(r)})'>
-            ${selected(activeClass,r.bib)?'Vald':'Välj'}
+            ${deadlinePassed()?'Låst':selected(activeClass,r.bib)?'Vald':'Välj'}
           </button>
         </div>`;
       }).join('') : `<div class="empty">Ingen löpare matchar din sökning.</div>`) :
@@ -340,6 +362,7 @@ function pickPage(){
       <p class="page-intro">Välj tre löpare i varje klass och bygg din fantasytrupp.</p><div class="selection-rules">
   <div class="budget-line"><span class="star-mark">★</span> ${teamCost()} / ${BUDGET} stjärnor</div>
   <div class="rules-line">Endast startgrupp 1A räknas i 15 km och 30 km.</div>
+  <div class="rules-line deadline-line">${deadlinePassed()?'LAGET ÄR LÅST':'Deadline: '+deadlineText()}</div>
 </div><div class="info-actions"><button class="btn secondary" onclick="view='stars';render()">Hur räknas stjärnorna?</button><button class="btn secondary" onclick="view='results';render()">Så räknas resultaten</button></div>
     </div>
   </div>
@@ -356,7 +379,23 @@ function pickPage(){
 }
 function myPage(){let total=selectedRunners.length;return `<div class="page-head my-page-head"><div><div class="eyebrow">Din fantasytrupp</div><h1>Mina löpare</h1><p class="page-intro">Här får du en samlad överblick över dina val.</p></div></div><div class="my-runners-mobile-note">Tryck på en klass för att se dina val.</div><div class="profile-strip"><div class="profile-avatar">${profileData.avatar_url?`<img src="${profileData.avatar_url}" alt="">`:initials(current)}</div><div><h2>${current}</h2><p>Fantasytrupp 2026</p></div><div class="stat"><div class="big-number">${total} / 30</div><small>löpare valda</small><div class="star-stat"><span class="star-mark">★</span> ${teamCost()} / ${BUDGET} <span>stjärnor använda</span></div></div></div><div class="overview-grid">${CLASSES.map(c=>{const picks=selectedRunners.filter(r=>r.classId===c[0]);return `<section class="overview-card"><div class="overview-head"><strong>${c[0]}</strong><span>${picks.length} / 3 löpare</span></div><div class="overview-labels"><span>Löpare</span><span>Kostnad</span></div>${picks.length ? picks.map(r=>`<div class="runner-row"><div><div class="runner-name">${r.name}</div><div class="runner-club">${r.club||''}</div></div><div class="star-cost"><span class="star-mark">★</span><span class="star-cost-number">${Number(r.stars||1)}</span></div></div>`).join('') : `<div class="empty" style="padding:15px 0">Inga löpare valda ännu</div>`}</section>`}).join('')}</div>`}
 function friendsPage(){let friends=db.friends.filter(x=>x!==current);return `<div class="page-head"><div><div class="eyebrow">Socialt</div><h1>Kompisar</h1><p class="page-intro">Lägg till kompisar och jämför era fantasytrupper.</p></div><button class="btn primary" onclick="friendModal()">+ Lägg till kompis</button></div><div class="friend-layout"><div class="list">${friends.length?friends.map(f=>`<div class="list-item"><div class="mini-avatar">${initials(f)}</div><div class="list-main"><div class="list-name">${f}</div><div class="list-meta">Kompis</div></div><button class="btn secondary" onclick="toast('Profil öppnad')">Visa</button></div>`).join(''):`<div class="empty">Du har inga kompisar ännu.<br>Skicka en inbjudan för att komma igång.</div>`}</div><div class="card"><h2 class="section-title" style="margin-top:0">Bjud in</h2><p class="page-intro">Skicka din inbjudningskod till en kompis.</p><div style="font-family:monospace;font-size:26px;color:var(--green);padding:16px 0">LL-${initials(current)}26</div><button class="btn primary" onclick="copyInvite()">Kopiera kod</button></div></div>`}
-function leaguesPage(){let ls=db.leagues.filter(l=>l.members.includes(current)||l.owner===current);return `<div class="page-head"><div><div class="eyebrow">Tävla tillsammans</div><h1>Ligor</h1><p class="page-intro">Skapa privata ligor, bjud in kompisar och följ tabellen tillsammans.</p></div><button class="btn primary" onclick="leagueModal()">+ Skapa liga</button></div><div class="league-layout"><div>${ls.length?ls.map(l=>`<div class="league-card"><div class="league-card-head"><div><h3>${l.name}</h3><div class="league-members">${l.members.length} medlem${l.members.length===1?'':'mar'} · Kod ${l.code}</div></div><span class="league-code">${l.owner===current?'ADMIN':'MEDLEM'}</span></div><div class="member-stack">${l.members.slice(0,6).map(m=>`<div class="mini-avatar" title="${m}">${initials(m)}</div>`).join('')}</div><div style="margin-top:16px"><button class="btn secondary" onclick="toast('Ligavyn kommer här')">Öppna liga</button></div></div>`).join(''):`<div class="card empty">Du är inte med i någon liga ännu.</div>`}</div><div class="card"><h2 class="section-title" style="margin-top:0">Gå med i liga</h2><p class="page-intro">Har en kompis skickat en ligakod?</p><div class="field" style="margin-top:18px"><label>Ligakod</label><input id="joinCode" placeholder="t.ex. LL26"></div><button class="btn primary" onclick="joinLeague()">Gå med</button></div></div>`}
+function leaguesPage(){
+  const active=leaguesData.find(l=>l.id===activeLeagueId);
+  return `<div class="page-head"><div><div class="eyebrow">Tävla tillsammans</div><h1>Ligor</h1><p class="page-intro">Skapa en liga, dela koden och tävla tillsammans. Poängen visas bredvid varje medlem.</p></div><button class="btn primary" onclick="leagueModal()">+ Skapa liga</button></div>
+  ${active?leagueDetail(active):`
+  <div class="league-layout"><div>${leaguesData.length?leaguesData.map(l=>`<div class="league-card"><div class="league-card-head"><div><h3>${escapeHtml(l.name)}</h3><div class="league-members">${l.members.length} medlem${l.members.length===1?'':'mar'} · Kod <strong>${l.code}</strong></div></div><span class="league-code">${l.owner_id===currentUser.id?'SKAPAD AV DIG':'MEDLEM'}</span></div><button class="btn secondary" onclick="openLeague('${l.id}')">Öppna liga</button></div>`).join(''):`<div class="card empty">Du är inte med i någon liga ännu.</div>`}</div>
+  <div class="card"><h2 class="section-title" style="margin-top:0">Gå med i liga</h2><p class="page-intro">Skriv in koden du fått av en kompis.</p><div class="field" style="margin-top:18px"><label>Ligakod</label><input id="joinCode" maxlength="6" placeholder="t.ex. AB12CD"></div><button class="btn primary" onclick="joinLeague()">Gå med</button><div class="deadline-note">Deadline för lagändringar: <strong>25 september kl. 15:00</strong></div></div></div>`}
+  `;
+}
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function leagueDetail(l){return `<div class="league-detail"><div class="page-head"><div><div class="eyebrow">Liga</div><h2 class="league-detail-title">${escapeHtml(l.name)}</h2><p class="page-intro">Dela koden <strong>${l.code}</strong> så kan andra gå med.</p></div><button class="btn secondary" onclick="activeLeagueId=null;activeLeagueMembers=[];render()">← Alla ligor</button></div><div class="league-code-box"><span>Ligakod</span><strong>${l.code}</strong><button class="btn secondary" onclick="copyLeagueCode('${l.code}')">Kopiera kod</button></div><div class="card"><div class="league-table-head"><strong>Medlem</strong><strong>Poäng</strong></div>${activeLeagueMembers.map((m,i)=>`<div class="league-member-row"><div><div class="list-name">${escapeHtml(m.display_name||m.username||'Användare')}</div>${m.username?`<div class="list-meta">@${escapeHtml(m.username)}</div>`:''}</div><strong class="league-points">${Number(m.points||0)} p</strong></div>`).join('')}</div></div>`}
+async function loadLeagues(){if(!currentUser)return;const {data,error}=await supabaseClient.from('leagues').select('id,name,code,owner_id,created_at').order('created_at',{ascending:false});if(error){leaguesData=[];return}const loaded=[];for(const l of (data||[])){const {data:members}=await supabaseClient.rpc('get_league_members',{p_league_id:l.id});loaded.push({...l,members:members||[]})}leaguesData=loaded;if(activeLeagueId){activeLeagueMembers=leaguesData.find(l=>l.id===activeLeagueId)?.members||[]}}
+async function openLeague(id){activeLeagueId=id;await loadLeagues();activeLeagueMembers=leaguesData.find(l=>l.id===id)?.members||[];render()}
+function randomLeagueCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];return code}
+function leagueModal(){modal(`<h2>Skapa liga</h2><div class="field"><label>Ligans namn</label><input id="leagueName" maxlength="60" placeholder="t.ex. Klassen 9B"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="createLeague()">Skapa liga</button></div>`)}
+async function createLeague(){const n=document.getElementById('leagueName')?.value.trim();if(!n){toast('Fyll i ett namn');return}for(let i=0;i<5;i++){const code=randomLeagueCode();const {data,error}=await supabaseClient.rpc('create_league',{p_name:n,p_code:code});if(!error){closeModal();await loadLeagues();activeLeagueId=data[0].league_id;activeLeagueMembers=leaguesData.find(l=>l.id===activeLeagueId)?.members||[];render();toast('Liga skapad');return}}toast('Kunde inte skapa ligan just nu')}
+async function joinLeague(){const code=document.getElementById('joinCode')?.value.trim().toUpperCase();if(!code){toast('Fyll i ligakoden');return}const {data,error}=await supabaseClient.rpc('join_league_by_code',{p_code:code});if(error){toast(error.message.includes('DEADLINE_PASSED')?'Deadline har passerat.':error.message.includes('LEAGUE_NOT_FOUND')?'Ligakoden hittades inte.':'Kunde inte gå med i ligan.');return}await loadLeagues();activeLeagueId=data[0].league_id;activeLeagueMembers=leaguesData.find(l=>l.id===activeLeagueId)?.members||[];render();toast(data[0].already_member?'Du är redan med i ligan.':'Du gick med i ligan.')}
+function copyLeagueCode(code){navigator.clipboard?.writeText(code);toast('Ligakoden kopierades')}
 function modal(inner){document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop" id="modal"><div class="modal">${inner}</div></div>`)}
 function closeModal(){document.getElementById('modal')?.remove()}
 function friendModal(){modal(`<h2>Lägg till kompis</h2><div class="field"><label>Kompisens användarnamn</label><input id="friendName" placeholder="t.ex. Erik"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="addFriend()">Lägg till</button></div>`)}
@@ -366,7 +405,7 @@ function createLeague(){let n=document.getElementById('leagueName').value.trim()
 function joinLeague(){let code=document.getElementById('joinCode').value.trim().toUpperCase();let l=db.leagues.find(x=>x.code===code);if(!l){toast('Ligakoden hittades inte');return}if(!l.members.includes(current))l.members.push(current);save();render();toast('Du gick med i ligan')}
 function copyInvite(){navigator.clipboard?.writeText('LL-'+initials(current)+'26');toast('Inbjudningskod kopierad')}
 function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
-supabaseClient.auth.getSession().then(async ({data})=>{currentUser=data.session?.user||null;if(currentUser){await loadUserData()}render();loadStartlists();});supabaseClient.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;});
+supabaseClient.auth.getSession().then(async ({data})=>{currentUser=data.session?.user||null;if(currentUser){await loadUserData();await loadLeagues()}render();loadStartlists();});supabaseClient.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;});
 </script>
 </body>
 </html>
