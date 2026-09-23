@@ -398,12 +398,6 @@ async function joinLeague(){const code=document.getElementById('joinCode')?.valu
 function copyLeagueCode(code){navigator.clipboard?.writeText(code);toast('Ligakoden kopierades')}
 function modal(inner){document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop" id="modal"><div class="modal">${inner}</div></div>`)}
 function closeModal(){document.getElementById('modal')?.remove()}
-function friendModal(){modal(`<h2>Lägg till kompis</h2><div class="field"><label>Kompisens användarnamn</label><input id="friendName" placeholder="t.ex. Erik"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="addFriend()">Lägg till</button></div>`)}
-function addFriend(){let n=document.getElementById('friendName').value.trim();if(!n)return;if(!db.users.some(u=>u.name.toLowerCase()===n.toLowerCase())){toast('Ingen användare hittades');return}if(n===current||db.friends.includes(n)){toast('Redan tillagd');return}db.friends.push(n);save();closeModal();render();toast('Kompis tillagd')}
-function leagueModal(){modal(`<h2>Skapa liga</h2><div class="field"><label>Ligans namn</label><input id="leagueName" placeholder="t.ex. Klassen 9B"></div><div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Avbryt</button><button class="btn primary" onclick="createLeague()">Skapa liga</button></div>`)}
-function createLeague(){let n=document.getElementById('leagueName').value.trim();if(!n)return;let code='LL'+Math.random().toString(36).slice(2,6).toUpperCase();db.leagues.push({name:n,code,members:[current],owner:current});save();closeModal();render();toast('Liga skapad')}
-function joinLeague(){let code=document.getElementById('joinCode').value.trim().toUpperCase();let l=db.leagues.find(x=>x.code===code);if(!l){toast('Ligakoden hittades inte');return}if(!l.members.includes(current))l.members.push(current);save();render();toast('Du gick med i ligan')}
-function copyInvite(){navigator.clipboard?.writeText('LL-'+initials(current)+'26');toast('Inbjudningskod kopierad')}
 function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
 supabaseClient.auth.getSession().then(async ({data})=>{currentUser=data.session?.user||null;if(currentUser){await loadUserData();await loadLeagues()}render();loadStartlists();});supabaseClient.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;});
 </script>
