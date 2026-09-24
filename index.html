@@ -395,7 +395,7 @@ function pickPage(){
             <div class="list-meta">${r.club || ''} · Startnr ${r.bib} · <strong><span class="star-mark">★</span> ${Number(r.stars||1)}</strong></div>
           </div>
           <button class="btn ${deadlinePassed()?'secondary':selected(activeClass,r.bib)?'primary':'secondary'}" ${deadlinePassed()?'disabled':''}
-                  onclick='toggleRunner(${JSON.stringify(activeClass)},${JSON.stringify(r)})'>
+                  onclick='event.stopPropagation();toggleRunner(${JSON.stringify(activeClass)},${JSON.stringify(r)})'>
             ${deadlinePassed()?'Låst':selected(activeClass,r.bib)?'Vald':'Välj'}
           </button>
         </div>`;
