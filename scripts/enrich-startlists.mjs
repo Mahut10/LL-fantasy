@@ -44,6 +44,7 @@ async function personHistory(registrationId) {
 const data = JSON.parse(await readFile(inputPath, 'utf8'));
 let updated = 0;
 for (const [classId, runners] of Object.entries(data.classes)) {
+  if (process.env.JUNIOR_ONLY === '1' && !JUNIOR_CLASSES.has(classId)) continue;
   const distance = classId.includes('15 km') ? 15 : classId.includes('30 km') ? 30 : classId.includes('P15') || classId.includes('F15') ? 6 : 10;
   const distances = JUNIOR_CLASSES.has(classId) ? [10, 6] : [distance];
   for (const runner of runners) {
