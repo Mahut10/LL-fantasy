@@ -235,7 +235,13 @@ async function loadUserData(){
  current=profileData.display_name;
  selectedRunners=Array.isArray(team?.selected_runners)?team.selected_runners:[];
 }
-function loginPage(){return '<div class="login-wrap"><div class="login-box"><img class="login-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><h1 class="login-title">Lidingöloppet Fantasy</h1><p class="login-sub">Bygg ditt lag. Tävla mot kompisarna.</p><div id="loginError"></div><div class="field"><label>E-post</label><input id="email" type="email" placeholder="du@exempel.se"></div><div class="field"><label>Lösenord</label><input id="password" type="password" placeholder="••••••••"></div><div class="login-actions"><button class="btn primary" onclick="login()">Logga in</button><button class="btn secondary" onclick="register()">Skapa konto</button></div><div class="login-note">Ditt konto sparas säkert och fungerar på alla dina enheter.</div></div></div>'}
+let signupMode=false;
+function loginPage(){
+ const title=signupMode?'Skapa konto':'Logga in';
+ const sub=signupMode?'Skapa din profil och börja bygga din fantasytrupp.':'Bygg ditt lag. Tävla mot kompisarna.';
+ return '<div class="login-wrap"><div class="login-box"><img class="login-logo" src="./assets/ll-logo.png" alt="TCS Lidingöloppet"><h1 class="login-title">'+title+'</h1><p class="login-sub">'+sub+'</p><div id="loginError"></div>'+ (signupMode ? '<div class="field"><label>Namn</label><input id="signupName" type="text" maxlength="60" placeholder="Ditt namn"></div><div class="field"><label>Användarnamn</label><input id="signupUsername" type="text" maxlength="30" placeholder="t.ex. max123"></div>' : '') + '<div class="field"><label>E-post</label><input id="email" type="email" placeholder="du@exempel.se"></div><div class="field"><label>Lösenord</label><input id="password" type="password" placeholder="••••••••"></div><div class="login-actions">'+(signupMode?'<button class="btn primary" onclick="register()">Skapa konto</button><button class="btn secondary" onclick="setSignupMode(false)">Logga in</button>':'<button class="btn primary" onclick="login()">Logga in</button><button class="btn secondary" onclick="setSignupMode(true)">Skapa konto</button>')+'</div><div class="login-note">'+(signupMode?'Namn och användarnamn sparas som din profil.':'Logga in med din e-post och ditt lösenord.')+'</div></div></div>';
+}
+function setSignupMode(enabled){signupMode=enabled;render()}
 async function login(){
  const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
  if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}
@@ -244,15 +250,18 @@ async function login(){
  currentUser=data.user;await loadUserData();render();
 }
 async function register(){
+ const n=document.getElementById('signupName')?.value.trim();
+ const u=document.getElementById('signupUsername')?.value.trim().toLowerCase();
  const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
- if(!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i e-post och lösenord.</div>';return}
+ if(!n||!u||!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i namn, användarnamn, e-post och lösenord.</div>';return}
+ if(!/^[a-z0-9_]{3,30}$/.test(u)){document.getElementById('loginError').innerHTML='<div class="error">Användarnamnet måste vara 3–30 tecken och får bara innehålla a–z, 0–9 och _.</div>';return}
  if(p.length<6){document.getElementById('loginError').innerHTML='<div class="error">Lösenordet måste vara minst 6 tecken.</div>';return}
- const n=e.split('@')[0];
  const {data,error}=await supabaseClient.auth.signUp({email:e,password:p});
  if(error){document.getElementById('loginError').innerHTML='<div class="error">Kunde inte skapa kontot.</div>';return}
  if(data.user){
-  await supabaseClient.from('profiles').upsert({id:data.user.id,display_name:n,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(data.session){currentUser=data.user;current=n;selectedRunners=[];render();toast('Kontot skapades')}
+  const {error:profileError}=await supabaseClient.from('profiles').upsert({id:data.user.id,display_name:n,username:u,updated_at:new Date().toISOString()},{onConflict:'id'});
+  if(profileError){console.error('register profile',profileError);document.getElementById('loginError').innerHTML='<div class="error">Kontot skapades men profilen kunde inte sparas. Försök logga in igen.</div>';return}
+  if(data.session){currentUser=data.user;current=n;profileData={display_name:n,username:u,avatar_url:''};selectedRunners=[];signupMode=false;render();toast('Kontot skapades')}
   else document.getElementById('loginError').innerHTML='<div class="success">Kontot skapades. Kontrollera din e-post för att bekräfta kontot.</div>';
  }
 }
