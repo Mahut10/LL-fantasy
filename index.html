@@ -162,6 +162,25 @@ button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:800px){.league-code-box{flex-wrap:wrap}.league-code-box strong{width:100%;margin-right:0}.league-code-box .btn{width:100%}.league-detail-title{font-size:32px}}
 </style>
 <style id="league-actions-fix">.league-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.btn.danger{border:1px solid #a52828;color:#a52828;background:#fff}.btn.danger:hover{background:#f8eeee}@media(max-width:800px){.league-actions{width:100%;justify-content:flex-start}.league-actions .btn{flex:1;min-width:0}}</style>
+
+<style id="runner-history-info">
+.runner-click{cursor:pointer}
+.runner-click:hover .list-name{color:var(--green)}
+.runner-history-modal{width:min(620px,100%)}
+.history-hero{background:var(--green);color:#fff;padding:20px 22px;margin:-27px -27px 20px}
+.history-hero h2{font-size:30px;margin:0 0 4px}
+.history-hero p{margin:0;color:#d5e7df}
+.history-price{margin-top:10px;font-size:19px;font-weight:700}
+.history-price .star-mark{color:#fff}
+.history-section-title{font-size:20px;color:var(--green);margin:18px 0 9px}
+.history-table{border:1px solid var(--line)}
+.history-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.history-row:last-child{border-bottom:0}
+.history-year{font-weight:700}.history-place{font-weight:700;color:var(--green)}
+.history-empty{padding:14px;background:#f6f8f6;color:var(--muted);line-height:1.45}
+.history-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:14px}
+@media(max-width:600px){.runner-history-modal{padding:20px}.history-hero{margin:-20px -20px 18px}.history-hero h2{font-size:26px}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -266,6 +285,30 @@ async function register(){
  }
 }
 async function logout(){await supabaseClient.auth.signOut();currentUser=null;current='';profileData={display_name:'',username:'',avatar_url:''};selectedRunners=[];render()}
+
+function runnerHistoryLabel(distance){
+  if(Number(distance)===6) return 'Lilla Lidingöloppet · 6 km';
+  return distance ? distance+' km' : 'Lidingöloppet';
+}
+function runnerInfo(runner){
+  const history=Array.isArray(runner.relevantHistory)?runner.relevantHistory:[];
+  const historyRows=history.length ? history.map(h=>`<div class="history-row"><span class="history-year">${h.year}</span><span class="history-place">${h.place ? h.place+'. plats' : '–'}</span></div>`).join('') : '<div class="history-empty">Ingen relevant historik finns sparad för den här löparen ännu.</div>';
+  const distance=(runner.classId==='P15'||runner.classId==='F15')?6:((runner.classId||'').includes('15 km')?15:((runner.classId||'').includes('30 km')?30:10));
+  return modal(`<div class="runner-history-modal">
+    <div class="history-hero">
+      <h2>${escapeHtml(runner.name||'Löpare')}</h2>
+      <p>${escapeHtml(runner.club||'')} · ${escapeHtml(runner.classId||'')}</p>
+      <div class="history-price"><span class="star-mark">★</span> ${Number(runner.stars||1)} stjärnor</div>
+    </div>
+    <div class="history-section-title">Varför kostar löparen ${Number(runner.stars||1)} stjärnor?</div>
+    <p>Stjärnpriset bygger på den sparade Lidingöloppet-historiken för löparen. Resultaten nedan är de resultat som ligger till grund för fantasyvärdet.</p>
+    <div class="history-section-title">Relevant historik</div>
+    <div class="history-table">${historyRows}</div>
+    <div class="history-note">Historiken som visas är den data som finns sparad i fantasyprojektet. För juniorerna P17, F17, P19 och F19 kan även resultat från Lilla Lidingöloppet användas när historiken har berikats med den tävlingen.</div>
+    <div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Stäng</button></div>
+  </div>`);
+}
+
 function starsInfoPage(){return `<div class="page info-page"><div class="page-head"><div><div class="eyebrow">Fantasyregler</div><h1>Så fungerar stjärnorna</h1><p class="page-intro">Stjärnorna är kostnaden för att välja en löpare.</p></div><button class="btn secondary" onclick="view='pick';render()">← Tillbaka</button></div><div class="card"><h2>Vad betyder stjärnorna?</h2><p>Varje löpare har ett fast antal stjärnor som fungerar som löparens pris i fantasy. Stjärnorna är alltså <strong>inte poäng</strong> som delas ut efter loppet.</p><h2>Din budget</h2><p>Du har totalt <strong>60 stjärnor</strong> att använda. När du väljer en löpare dras löparens stjärnkostnad från din budget. På sidan Välj löpare visas hur många stjärnor du har använt och hur många du har kvar.</p><h2>Hur många löpare får jag välja?</h2><p>Du får välja högst <strong>3 löpare i varje klass</strong>. Kostnaden för alla dina val måste tillsammans rymmas inom budgeten.</p><div class="info-note"><strong>Exempel:</strong> En löpare som kostar 8 stjärnor använder 8 av dina 60 stjärnor. En löpare som kostar 3 stjärnor använder 3.</div><h2>Hur sätts priset?</h2><p>Stjärnpriset är ett förutbestämt fantasyvärde för varje löpare och ändras inte automatiskt när loppet börjar. Det används för att skapa budgetbegränsningen och balansera vilka kombinationer av löpare som går att välja.</p></div></div>`}
 
 function resultsInfoPage(){return `<div class="page info-page"><div class="page-head"><div><div class="eyebrow">Fantasyregler</div><h1>Så räknas resultaten</h1><p class="page-intro">Slutplaceringen i den aktuella klassen avgör fantasypoängen.</p></div><button class="btn secondary" onclick="view='pick';render()">← Tillbaka</button></div><div class="card"><h2>Poängtabell</h2><div class="points-table"><div><strong>1:a</strong><span>100 p</span></div><div><strong>2:a</strong><span>90 p</span></div><div><strong>3:a</strong><span>82 p</span></div><div><strong>4:a</strong><span>76 p</span></div><div><strong>5:a</strong><span>71 p</span></div><div><strong>6:a</strong><span>67 p</span></div><div><strong>7:a</strong><span>63 p</span></div><div><strong>8:a</strong><span>59 p</span></div><div><strong>9:a</strong><span>56 p</span></div><div><strong>10:a</strong><span>53 p</span></div><div><strong>11:a</strong><span>50 p</span></div><div><strong>12:a</strong><span>47 p</span></div><div><strong>13:e</strong><span>44 p</span></div><div><strong>14:e</strong><span>41 p</span></div><div><strong>15:e</strong><span>38 p</span></div><div><strong>16:e</strong><span>35 p</span></div><div><strong>17:e</strong><span>32 p</span></div><div><strong>18:e</strong><span>29 p</span></div><div><strong>19:e</strong><span>26 p</span></div><div><strong>20:e</strong><span>23 p</span></div><div><strong>21:a</strong><span>20 p</span></div><div><strong>22:a</strong><span>18 p</span></div><div><strong>23:e</strong><span>16 p</span></div><div><strong>24:e</strong><span>14 p</span></div><div><strong>25:e</strong><span>12 p</span></div><div><strong>26:e</strong><span>10 p</span></div><div><strong>27:e</strong><span>9 p</span></div><div><strong>28:e</strong><span>8 p</span></div><div><strong>29:e</strong><span>7 p</span></div><div><strong>30:e</strong><span>6 p</span></div><div><strong>31:a</strong><span>5 p</span></div><div><strong>32:a</strong><span>4 p</span></div><div><strong>33:e</strong><span>3 p</span></div><div><strong>34:e</strong><span>2 p</span></div><div><strong>35:e och nedåt</strong><span>1 p</span></div></div><h2>Så räknas din trupp</h2><p>Varje vald löpare får poäng efter sin slutplacering i sin aktuella klass. Poängen för alla dina valda löpare summeras till din totala fantasypoäng.</p><div class="info-note"><strong>Exempel:</strong> Om tre av dina löpare blir 2:a, 8:a och 24:a får du 90 + 59 + 14 = <strong>163 poäng</strong>.</div><h2>Vilket resultat används?</h2><p>Det är den officiella slutplaceringen som räknas. Mellantider, startnummer och klubb påverkar inte poängen. Om det officiella resultatet senare rättas ska fantasyresultatet kunna uppdateras.</p><h2>Förberett för resultatregistrering</h2><p>När resultaten är publicerade kan du skicka resultatlistorna till projektet. Resultaten kan då matchas mot dina valda löpare och poängen räknas ut enligt tabellen ovan.</p></div></div>`}
@@ -345,7 +388,7 @@ function pickPage(){
       ${allRows.length ? (rows.length ? rows.map(r=>{
         const searchData=`${r.name||''} ${r.club||''} ${r.bib||''}`.toLowerCase().replace(/"/g,'&quot;');
         return `
-        <div class="list-item runner-result" data-search="${searchData}">
+        <div class="list-item runner-result runner-click" data-search="${searchData}" onclick='runnerInfo(${JSON.stringify(r)})'>
           <div class="mini-avatar">${initials(r.name)}</div>
           <div class="list-main">
             <div class="list-name">${r.name}</div>
