@@ -181,7 +181,24 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .history-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:14px}
 @media(max-width:600px){.runner-history-modal{padding:20px}.history-hero{margin:-20px -20px 18px}.history-hero h2{font-size:26px}}
 </style>
-</head>
+<style id="runner-news">
+.news-wrap{margin-top:30px}
+.news-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:12px}
+.news-head h2{font-size:30px;margin:0}
+.news-head p{margin:3px 0 0;color:var(--muted)}
+.news-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.news-card{background:#fff;border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;min-height:250px}
+.news-kicker{color:var(--green);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.news-card h3{font-size:23px;line-height:1.1;margin:8px 0}
+.news-card p{color:#39433f;line-height:1.45;margin:0 0 14px}
+.news-meta{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
+.news-price{font-weight:700;color:var(--green);font-size:17px}
+.news-source{display:block;margin-top:7px;font-size:12px;color:var(--muted)}
+.news-source a{color:var(--green)!important;text-decoration:underline}
+.news-note{margin-top:10px;padding:11px 13px;background:#e7eeea;border-left:4px solid var(--green);font-size:12px;color:#39433f;line-height:1.4}
+@media(max-width:900px){.news-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.news-head{display:block}.news-grid{grid-template-columns:1fr}.news-card{min-height:0}}
+</style></head>
 <body>
 <div id="app"></div>
 <script src="./startlists.js"></script>
@@ -308,6 +325,34 @@ function runnerInfo(runner){
     <div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Stäng</button></div>
   </div>`);
 }
+
+function runnerNewsSection(){return `
+<section class="news-wrap">
+  <div class="news-head">
+    <div><h2>Löparnytt</h2><p>Nyheter om löpare som faktiskt finns med i årets fantasy-startlista.</p></div>
+  </div>
+  <div class="news-grid">
+    <article class="news-card">
+      <div class="news-kicker">K30 · Sylvia Medugu Kiberenge</div>
+      <h3>Femte 30 km-segern i sikte</h3>
+      <p>Sylvia är sexfaldig Lidingöloppsvinnare och har fyra segrar på 30 km. Lidingöloppet skriver att hon blev tvåa de tre senaste åren och kan bli första löparen med fem segrar på 30 km.</p>
+      <div class="news-meta"><div class="news-price"><span class="star-mark">★</span> 5 stjärnor</div><span class="news-source">Källa: <a href="https://www.lidingoloppet.se/tcs-lidingoloppet/vanliga-fragor/prispengar-och-priser" target="_blank" rel="noopener">Lidingöloppet</a> · <a href="https://runnersworld.se/johnson-krossade-pa-lidingoloppet/" target="_blank" rel="noopener">Runner's World</a></span></div>
+    </article>
+    <article class="news-card">
+      <div class="news-kicker">K30 · Evelina Henriksson</div>
+      <h3>Två raka tredjeplatser</h3>
+      <p>Evelina blev trea på 30 km både 2024 och 2025. Lidingöloppet lyfter också hennes nordiska terrängmästartitel och SM-guld på 10 000 meter 2025 och 2026.</p>
+      <div class="news-meta"><div class="news-price"><span class="star-mark">★</span> 5 stjärnor</div><span class="news-source">Källa: <a href="https://www.lidingoloppet.se/tcs-lidingoloppet/vanliga-fragor/prispengar-och-priser" target="_blank" rel="noopener">Lidingöloppet</a> · <a href="https://runnersworld.se/johnson-krossade-pa-lidingoloppet/" target="_blank" rel="noopener">Runner's World</a></span></div>
+    </article>
+    <article class="news-card">
+      <div class="news-kicker">K30 · Emma Eriksson</div>
+      <h3>Fyra i fjol – med stark trailprofil</h3>
+      <p>Emma blev fyra på Lidingöloppet 30 km 2025. Inför 2026 lyfter arrangören hennes seger i Trailtouren 2025 och bronset från trail-EM över 52 km.</p>
+      <div class="news-meta"><div class="news-price"><span class="star-mark">★</span> 1 stjärna</div><span class="news-source">Källa: <a href="https://www.lidingoloppet.se/tcs-lidingoloppet/vanliga-fragor/prispengar-och-priser" target="_blank" rel="noopener">Lidingöloppet</a> · <a href="https://worldathletics.org/competition/calendar-results/results/7229541" target="_blank" rel="noopener">World Athletics</a></span></div>
+    </article>
+  </div>
+  <div class="news-note"><strong>Fantasypris ≠ prispengar:</strong> stjärnorna är LL-Fantasys egna kostnader. I TCS Lidingöloppet 30 är den officiella prispengen 30 000 kr till vinnaren, 20 000 kr till tvåan och 12 000 kr till trean. Prispengarna betalas till deltagarens förening.</div>
+</section>`;}
 
 function starsInfoPage(){return `<div class="page info-page"><div class="page-head"><div><div class="eyebrow">Fantasyregler</div><h1>Så fungerar stjärnorna</h1><p class="page-intro">Stjärnorna är kostnaden för att välja en löpare.</p></div><button class="btn secondary" onclick="view='pick';render()">← Tillbaka</button></div><div class="card"><h2>Vad betyder stjärnorna?</h2><p>Varje löpare har ett fast antal stjärnor som fungerar som löparens pris i fantasy. Stjärnorna är alltså <strong>inte poäng</strong> som delas ut efter loppet.</p><h2>Din budget</h2><p>Du har totalt <strong>60 stjärnor</strong> att använda. När du väljer en löpare dras löparens stjärnkostnad från din budget. På sidan Välj löpare visas hur många stjärnor du har använt och hur många du har kvar.</p><h2>Hur många löpare får jag välja?</h2><p>Du får välja högst <strong>3 löpare i varje klass</strong>. Kostnaden för alla dina val måste tillsammans rymmas inom budgeten.</p><div class="info-note"><strong>Exempel:</strong> En löpare som kostar 8 stjärnor använder 8 av dina 60 stjärnor. En löpare som kostar 3 stjärnor använder 3.</div><h2>Hur sätts priset?</h2><p>Stjärnpriset är ett förutbestämt fantasyvärde för varje löpare och ändras inte automatiskt när loppet börjar. Det används för att skapa budgetbegränsningen och balansera vilka kombinationer av löpare som går att välja.</p></div></div>`}
 
