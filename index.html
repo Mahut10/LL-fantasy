@@ -373,17 +373,31 @@ async function login(){
 async function register(){
  const n=document.getElementById('signupName')?.value.trim();
  const u=document.getElementById('signupUsername')?.value.trim().toLowerCase();
- const e=document.getElementById('email').value.trim().toLowerCase(),p=document.getElementById('password').value;
- if(!n||!u||!e||!p){document.getElementById('loginError').innerHTML='<div class="error">Fyll i namn, användarnamn, e-post och lösenord.</div>';return}
- if(!/^[a-z0-9_]{3,30}$/.test(u)){document.getElementById('loginError').innerHTML='<div class="error">Användarnamnet måste vara 3–30 tecken och får bara innehålla a–z, 0–9 och _.</div>';return}
- if(p.length<6){document.getElementById('loginError').innerHTML='<div class="error">Lösenordet måste vara minst 6 tecken.</div>';return}
+ const e=document.getElementById('email')?.value.trim().toLowerCase(),p=document.getElementById('password')?.value;
+ const err=document.getElementById('loginError');
+ if(!n||!u||!e||!p){err.innerHTML='<div class="error">Fyll i namn, användarnamn, e-post och lösenord.</div>';return}
+ if(!/^[a-z0-9_]{3,30}$/.test(u)){err.innerHTML='<div class="error">Användarnamnet måste vara 3–30 tecken och får bara innehålla a–z, 0–9 och _.</div>';return}
+ if(p.length<6){err.innerHTML='<div class="error">Lösenordet måste vara minst 6 tecken.</div>';return}
+ err.innerHTML='<div class="success">Skapar konto…</div>';
  const {data,error}=await supabaseClient.auth.signUp({email:e,password:p,options:{emailRedirectTo:'https://mahut10.github.io/LL-fantasy/'}});
- if(error){document.getElementById('loginError').innerHTML='<div class="error">Kunde inte skapa kontot.</div>';return}
- if(data.user){
+ if(error){
+  console.error('signup',error);
+  const msg=error.message||'';
+  if(/already registered|already exists|user already/i.test(msg)) err.innerHTML='<div class="error">Det finns redan ett konto med den e-postadressen. Försök logga in.</div>';
+  else err.innerHTML='<div class="error">'+escapeHtml(msg||'Kunde inte skapa kontot.')+'</div>';
+  return;
+ }
+ if(!data.user){err.innerHTML='<div class="error">Kontot kunde inte skapas. Försök igen.</div>';return}
+ if(data.session){
   const {error:profileError}=await supabaseClient.from('profiles').upsert({id:data.user.id,display_name:n,username:u,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(profileError){console.error('register profile',profileError);document.getElementById('loginError').innerHTML='<div class="error">Kontot skapades men profilen kunde inte sparas. Försök logga in igen.</div>';return}
-  if(data.session){currentUser=data.user;current=n;profileData={display_name:n,username:u,avatar_url:''};selectedRunners=[];signupMode=false;render();toast('Kontot skapades')}
-  else document.getElementById('loginError').innerHTML='<div class="success">Kontot skapades. Kontrollera din e-post för att bekräfta kontot.</div>';
+  if(profileError){
+   console.error('register profile',profileError);
+   err.innerHTML='<div class="error">Kontot skapades, men profilen kunde inte sparas. Försök logga in igen.</div>';
+   return;
+  }
+  currentUser=data.user;current=n;profileData={display_name:n,username:u,avatar_url:''};selectedRunners=[];signupMode=false;render();toast('Kontot skapades');
+ }else{
+  err.innerHTML='<div class="success">Kontot skapades. Kontrollera din e-post för att bekräfta kontot.</div>';
  }
 }
 async function logout(){await supabaseClient.auth.signOut();currentUser=null;current='';profileData={display_name:'',username:'',avatar_url:''};selectedRunners=[];render()}
