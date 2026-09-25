@@ -198,7 +198,64 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .news-note{margin-top:10px;padding:11px 13px;background:#e7eeea;border-left:4px solid var(--green);font-size:12px;color:#39433f;line-height:1.4}
 @media(max-width:900px){.news-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.news-head{display:block}.news-grid{grid-template-columns:1fr}.news-card{min-height:0}}
-</style></head>
+<style id="mobile-league-fix">
+@media(max-width:800px){
+  body{overflow-x:hidden}
+  .page{max-width:100%;overflow:hidden}
+  .league-detail .page-head{
+    display:block;
+    margin-bottom:16px;
+  }
+  .league-detail .page-head>div:first-child{
+    min-width:0;
+  }
+  .league-detail-title{
+    font-size:32px;
+    line-height:1.05;
+    overflow-wrap:anywhere;
+  }
+  .league-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-top:16px;
+  }
+  .league-actions .btn{
+    width:100%;
+    min-width:0;
+    padding:12px 14px;
+    text-align:center;
+  }
+  .league-code-box{
+    padding:17px 16px;
+    display:block;
+    margin-bottom:12px;
+  }
+  .league-code-box span{
+    display:block;
+    margin-bottom:7px;
+  }
+  .league-code-box strong{
+    display:block;
+    width:100%;
+    font-size:25px;
+    letter-spacing:.1em;
+    overflow-wrap:anywhere;
+    margin:0 0 14px;
+  }
+  .league-code-box .btn{
+    width:100%;
+  }
+  .league-detail .card{
+    overflow:hidden;
+  }
+  .league-member-row{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px;
+  }
+}
+</style></style></head>
 <body>
 <div id="app"></div>
 <script src="./startlists.js"></script>
