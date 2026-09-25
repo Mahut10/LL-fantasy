@@ -346,12 +346,14 @@ async function loadUserData(){
   supabaseClient.from('profiles').select('display_name,username,avatar_url').eq('id',currentUser.id).maybeSingle(),
   supabaseClient.from('fantasy_teams').select('selected_runners').eq('user_id',currentUser.id).maybeSingle()
  ]);
- const defaultName=currentUser.email.split('@')[0];
+ const meta=currentUser.user_metadata||{};
+ const defaultName=currentUser.email?.split('@')[0]||'Användare';
  if(profile){
-  profileData={display_name:profile.display_name||defaultName,username:profile.username||'',avatar_url:profile.avatar_url||''};
+  profileData={display_name:profile.display_name||meta.display_name||defaultName,username:profile.username||meta.username||'',avatar_url:profile.avatar_url||''};
  }else{
-  const {data:created}=await supabaseClient.from('profiles').upsert({id:currentUser.id,display_name:defaultName,updated_at:new Date().toISOString()},{onConflict:'id'}).select('display_name,username,avatar_url').single();
-  profileData={display_name:created?.display_name||defaultName,username:created?.username||'',avatar_url:created?.avatar_url||''};
+  const {data:created,error:profileError}=await supabaseClient.from('profiles').upsert({id:currentUser.id,display_name:meta.display_name||defaultName,username:meta.username||null,updated_at:new Date().toISOString()},{onConflict:'id'}).select('display_name,username,avatar_url').single();
+  if(profileError)console.error('load profile',profileError);
+  profileData={display_name:created?.display_name||meta.display_name||defaultName,username:created?.username||meta.username||'',avatar_url:created?.avatar_url||''};
  }
  current=profileData.display_name;
  selectedRunners=Array.isArray(team?.selected_runners)?team.selected_runners:[];
@@ -379,7 +381,7 @@ async function register(){
  if(!/^[a-z0-9_]{3,30}$/.test(u)){err.innerHTML='<div class="error">Användarnamnet måste vara 3–30 tecken och får bara innehålla a–z, 0–9 och _.</div>';return}
  if(p.length<6){err.innerHTML='<div class="error">Lösenordet måste vara minst 6 tecken.</div>';return}
  err.innerHTML='<div class="success">Skapar konto…</div>';
- const {data,error}=await supabaseClient.auth.signUp({email:e,password:p,options:{emailRedirectTo:'https://mahut10.github.io/LL-fantasy/'}});
+ const {data,error}=await supabaseClient.auth.signUp({email:e,password:p,options:{data:{display_name:n,username:u},emailRedirectTo:'https://mahut10.github.io/LL-fantasy/'}});
  if(error){
   console.error('signup',error);
   const msg=error.message||'';
